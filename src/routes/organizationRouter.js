@@ -6,17 +6,18 @@ const {
   updateOrganizationController,
   registerOrganizationController,
 } = require("../controllers/organization");
+const isAuthorized = require("../middlewares/auth/isAuthorized");
 
 const organizationRouter = Router();
 
 organizationRouter.post("/", registerOrganizationController);
 
-organizationRouter.get("/", getOrganizationsController);
+organizationRouter.get("/", isAuthorized, getOrganizationsController);
 
-organizationRouter.get("/:organizationID", getOrganizationController);
+organizationRouter.get("/:organizationID", isAuthorized, getOrganizationController);
 
-organizationRouter.patch("/:id", updateOrganizationController);
+organizationRouter.patch("/:id", isAuthorized, updateOrganizationController);
 
-organizationRouter.delete("/:id", deleteOrganizationController);
+organizationRouter.delete("/:id", isAuthorized, deleteOrganizationController);
 
 module.exports = organizationRouter;

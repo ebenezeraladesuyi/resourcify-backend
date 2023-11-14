@@ -33,6 +33,8 @@ async function registerEmployee(req, res, next) {
   }
 }
 
+async function signinEmployee(req, res, next) {}
+
 async function getEmployees(req, res, next) {
   try {
   } catch (error) {}

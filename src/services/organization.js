@@ -21,6 +21,8 @@ async function registerOrganization(req, res, next) {
   }
 }
 
+async function signinOrganization(req, res, next) {}
+
 async function getOrganization(req, res, next) {
   try {
     const organizationID = req.params.id;

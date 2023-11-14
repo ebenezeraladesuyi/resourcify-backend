@@ -35,6 +35,7 @@ employeeSchema.pre("save", async function (next) {
     const salt = await bcrypt.genSalt(12);
     user.password = await bcrypt.hash(user.password, salt);
   }
+  user.updatedAt = Date.now();
   next();
 });
 

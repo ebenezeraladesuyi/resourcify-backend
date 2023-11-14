@@ -17,10 +17,8 @@ const reimbursementSchema = new Schema(
     items: [{
       name: { type: String, required: true },
       content: {type: String },
-      properties: [{
-        key: { type: String, required: true },
-        value: { type: Schema.Types.Mixed, required: true}
-      }],
+      type: {type: Schema.Types.ObjectId, ref: "CustomItemType"},
+      amount: {type: String, required: true }
       comments: [{
         sender: {type: Schema.Types.Mixed, required: true}
         message: {Type: String, required: true}
@@ -35,7 +33,10 @@ const reimbursementSchema = new Schema(
 );
 
 
-
+reimbursementSchema.pre("save", function (next) {
+  this.updatedAt = Date.now();
+  next();
+});
 
 
 const Reimbursement = model("Reimbursement", reimbursementSchema);

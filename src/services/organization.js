@@ -3,13 +3,14 @@ const { generate } = require("randomstring");
 const { STATUS_CODE, BadRequestError } = require("../utils/app-errors");
 
 async function registerOrganization(req, res, next) {
-  const { name, code, email, reimbusmentLimit } = req.body;
+  const { name, email, password } = req.body;
 
   try {
     const organization = new Organization({
       name,
       code: generate(8),
       email,
+      password,
     });
 
     organization.policies.reimbusmentLimit = reimbusmentLimit;

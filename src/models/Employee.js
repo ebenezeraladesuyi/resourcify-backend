@@ -6,6 +6,7 @@ const employeeSchema = new Schema(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
+    active: { type: Boolean, default: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     organizationCode: { type: String, required: true },
@@ -34,6 +35,7 @@ employeeSchema.pre("save", async function (next) {
     const salt = await bcrypt.genSalt(12);
     user.password = await bcrypt.hash(user.password, salt);
   }
+  user.updatedAt = Date.now();
   next();
 });
 

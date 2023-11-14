@@ -10,7 +10,7 @@ const organizationSchema = new Schema(
     employees: [{ type: Schema.Types.ObjectId, ref: "Employee" }],
     customItemTypes: [{ type: Schema.Types.ObjectId, ref: "CustomItemType" }],
     policies: {
-      reimbusmentLimit: Number,
+      reimbusmentLimit: String,
     },
     createdAt: { type: Date, default: () => Date.now(), immutable: true },
     updatedAt: Date
@@ -43,7 +43,7 @@ organizationSchema.pre("remove", function (next) {
 
 const customItemTypeSchema = new Schema({
   name: { type: String, required: true },
-  description: { type: String, required: true },
+  description: { type: String },
   organization: { type: Schema.Types.ObjectId, ref: "Organization" },
   createdAt: { type: Date, default: () => Date.now(), immutable: true },
   updatedAt: Date
@@ -56,4 +56,8 @@ organizationSchema.methods.comparePassword = async function (userpassword) {
 
 const Organization = model("Organization", organizationSchema);
 const CustomItemType = model("CustomItemType", customItemTypeSchema);
-module.exports = Organization;
+module.exports = 
+{
+  Organization,
+  CustomItemType
+}

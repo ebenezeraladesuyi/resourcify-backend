@@ -3,13 +3,40 @@ const { Schema, model, Types } = mongoose;
 
 const reimbursementSchema = new Schema(
   {
-    request: { type: String },
+    title: { type: String },
+    description: { type: String },
+    status: { type: String },
+    userId: { type: Types.ObjectId, ref: "User" },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: Date,
+    comments: [{
+      sender: {type: Schema.Types.Mixed, required: true}
+      message: {Type: String, required: true}
+      date: {type: Date, default: Date.now, immutable: true}
+    }],
+    items: [{
+      name: { type: String, required: true },
+      content: {type: String },
+      properties: [{
+        key: { type: String, required: true },
+        value: { type: Schema.Types.Mixed, required: true}
+      }],
+      comments: [{
+        sender: {type: Schema.Types.Mixed, required: true}
+        message: {Type: String, required: true}
+        date: {type: Date, default: Date.now, immutable: true}
+      }],
+    }]
   },
   {
     versionKey: false,
     timestamps: true,
   }
 );
+
+
+
+
 
 const Reimbursement = model("Reimbursement", reimbursementSchema);
 module.exports = Reimbursement;

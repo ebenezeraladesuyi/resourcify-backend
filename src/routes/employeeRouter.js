@@ -6,13 +6,14 @@ const {
   updateEmployeeController,
   deleteEmployeeController,
 } = require("../controllers/employee");
+const isAuthorized = require("../middlewares/auth/isAuthorized");
 
 const employeeRouter = Router();
 
 employeeRouter.post("/register", registerEmployeeController);
-employeeRouter.get("/", getEmployeesController);
-employeeRouter.get("/:employeeID", getEmployeeController);
-employeeRouter.patch("/:employeeID", updateEmployeeController);
-employeeRouter.delete("/:employeeID", deleteEmployeeController);
+employeeRouter.get("/",isAuthorized, getEmployeesController);
+employeeRouter.get("/:employeeID", isAuthorized, getEmployeeController);
+employeeRouter.patch("/:employeeID", isAuthorized, updateEmployeeController);
+employeeRouter.delete("/:employeeID", isAuthorized, deleteEmployeeController);
 
 module.exports = employeeRouter;

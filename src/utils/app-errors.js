@@ -8,7 +8,7 @@ const STATUS_CODE = {
 };
 
 class AppError extends Error {
-  constructor(name, statusCode, description) {
+  constructor(name, statusCode, description, logErrorResponse) {
     super(description);
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = name;
@@ -16,6 +16,7 @@ class AppError extends Error {
     this.isOperational = this.isOperational;
     this.errorStack = this.errorStack;
     this.logErrorResponse = logErrorResponse;
+    this.msg = description;
     Error.captureStackTrace(this);
   }
 }

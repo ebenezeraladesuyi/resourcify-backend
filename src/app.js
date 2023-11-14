@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const api = require("./api");
-const { BadRequestError } = require("./utils/app-errors");
+const { BadRequestError, STATUS_CODE } = require("./utils/app-errors");
 const errorHandler = require("./utils/error-handler");
 
 function appConfig(app) {
@@ -14,8 +14,13 @@ function appConfig(app) {
 
   // Catch 404 routes
   app.all("*", (req, res, next) => {
-    next(new BadRequestError(`This route ${req.originalUrl} does not exist`));
+    // next(new BadRequestError(`This route ${req.originalUrl} does not exist`));
+    res.status(STATUS_CODE.NOT_FOUND).json({
+      status: STATUS_CODE.NOT_FOUND,
+      message: `This route ${req.originalUrl} does not exist`
+    })
   });
+  
 
   // Error middleware
   app.use(errorHandler);

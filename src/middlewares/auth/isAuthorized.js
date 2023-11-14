@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { ValidationError } = require("../../utils/app-errors");
 const Employee = require("../../models/Employee");
+const { verifyToken } = require("../../utils/token");
 
 async function isAuthorized(req, res, next) {
   const authHeader =
@@ -10,27 +11,35 @@ async function isAuthorized(req, res, next) {
     throw new ValidationError("Token not found");
   }
 
-  jwt.verify(authHeader.split(" ")[1], "Secret", async (err, decodedUser) => {
-    if (err) {
-      const errorMsg =
-        err.name === "JsonWebTokenError"
-          ? "Auth Failed (Unauthorized)"
-          : err.message;
-      next(new ValidationError(errorMsg));
-    }
+  const bearer = (authHeader?.split(' ')[1])?.replace(/^(['"])(.*?)\1$/, '$2');
 
-    const verifiedUser = await Employee.findOne({
-      _id: decodedUser._id,
-    }).select("-password");
+  const decodedToken = verifyToken(bearer);
+  if (decodedToken.error) next(new ValidationError(decodedToken.error))
 
-    if (!verifiedUser) {
-      next(ValidationError("Unauthorized user"));
-    }
+  req.body = {...req.body, ...decodedToken.data}
+  next()
 
-    req.user = verifiedUser;
+  // jwt.verify(authHeader.split(" ")[1], "Secret", async (err, decodedUser) => {
+  //   if (err) {
+  //     const errorMsg =
+  //       err.name === "JsonWebTokenError"
+  //         ? "Auth Failed (Unauthorized)"
+  //         : err.message;
+  //     next(new ValidationError(errorMsg));
+  //   }
 
-    next();
-  });
+  //   const verifiedUser = await Employee.findOne({
+  //     _id: decodedUser._id,
+  //   }).select("-password");
+
+  //   if (!verifiedUser) {
+  //     next(ValidationError("Unauthorized user"));
+  //   }
+
+  //   req.user = verifiedUser;
+
+  //   next();
+  // });
 }
 
 module.exports = isAuthorized;

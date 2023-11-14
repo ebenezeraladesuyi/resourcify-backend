@@ -24,7 +24,8 @@ const reimbursementSchema = new Schema(
         message: {Type: String, required: true}
         date: {type: Date, default: Date.now, immutable: true}
       }],
-    }]
+    }],
+    totalAmount: {type: String}
   },
   {
     versionKey: false,

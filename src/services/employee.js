@@ -1,7 +1,6 @@
 const envVariable = require("../config/envVariables");
 const Employee = require("../models/Employee");
 const Organization = require("../models/Organization");
-const Token = require("../models/Token");
 const { ValidationError, STATUS_CODE } = require("../utils/app-errors");
 
 async function registerEmployee(req, res, next) {
@@ -24,14 +23,13 @@ async function registerEmployee(req, res, next) {
     await employee.save();
     organization.employees.push(employee._id);
 
-    const token = new Token({ userID: employee._id });
-    const accessToken = envVariable.ACCESS_TOKEN_SECRET;
-
     return res.status(STATUS_CODE.CREATED).json(employee);
   } catch (error) {
     return res.status(STATUS_CODE.INTERNAL_ERROR).json(error);
   }
 }
+
+async function signinEmployee(req, res, next) {}
 
 async function getEmployees(req, res, next) {
   try {

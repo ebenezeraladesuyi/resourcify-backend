@@ -5,6 +5,9 @@ const {
   getOrganizations,
   updateOrganization,
   deleteOrganization,
+  getEmployees,
+  getEmployee,
+  deactivateEmployee,
 } = require("../services/organization");
 
 const registerOrganizationController = (req, res, next) =>
@@ -24,6 +27,15 @@ const updateOrganizationController = (req, res, next) =>
 const deleteOrganizationController = (req, res, next) =>
   deleteOrganization(req, res, next);
 
+const getEmployeesController = (req, res, next) => 
+  getEmployees(req, res, next);
+
+const getEmployeeController = (req, res, next) => 
+  getEmployee(req, res, next);
+
+const deactivateEmployeeController = (req, res, next) => 
+  deactivateEmployee(req, res, next);
+
 module.exports = {
   registerOrganizationController,
   siginOrganizationController,
@@ -31,4 +43,7 @@ module.exports = {
   getOrganizationsController,
   updateOrganizationController,
   deleteOrganizationController,
+  getEmployeesController,
+  getEmployeeController,
+  deactivateEmployeeController,
 };

@@ -10,18 +10,18 @@ const reimbursementSchema = new Schema(
     createdAt: { type: Date, default: Date.now },
     updatedAt: Date,
     comments: [{
-      sender: {type: Schema.Types.Mixed, required: true}
-      message: {Type: String, required: true}
+      sender: {type: Schema.Types.Mixed, required: true},
+      message: {type: String, required: true},
       date: {type: Date, default: Date.now, immutable: true}
     }],
     items: [{
       name: { type: String, required: true },
       content: {type: String },
       type: {type: Schema.Types.ObjectId, ref: "CustomItemType"},
-      amount: {type: String, required: true }
+      amount: {type: String, required: true },
       comments: [{
-        sender: {type: Schema.Types.Mixed, required: true}
-        message: {Type: String, required: true}
+        sender: {type: Schema.Types.Mixed, required: true},
+        message: {type: String, required: true},
         date: {type: Date, default: Date.now, immutable: true}
       }],
     }],

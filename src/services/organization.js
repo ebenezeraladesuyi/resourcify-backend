@@ -1,9 +1,11 @@
 const {Organization, CustomItemType} = require("../models/Organization");
+const {Reimbursement} = require("../models/Reimbursement");
 const { generate } = require("randomstring");
 const { STATUS_CODE, BadRequestError, ValidationError, ApiError } = require("../utils/app-errors");
 const bcrypt = require("bcrypt");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 const { generateHashedPassword } = require("../utils/globalFunctions");
+const Employee = require("../models/Employee");
 
 
 // signup/register
@@ -144,6 +146,70 @@ async function deleteOrganization(req, res, next) {
   }
 }
 
+async function getEmployees(req, res, next) {
+  try {
+    const {code, isAdmin} = req.body
+
+
+    if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
+
+    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email active')
+    // const employees = await Organization.findOne({code}, 'employees').populate("employees")
+    return res.status(STATUS_CODE.OK).json(employees)
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+async function getEmployee(req, res, next) {
+  try {
+    const {code, isAdmin} = req.body
+    const {id} = req.params
+
+    if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
+
+    if (!id) return res.status(STATUS_CODE.BAD_REQUEST).json("Bad Request");
+
+    // const employee = await Employee.findById(id, 'firstName lastName email active accounts')
+    const employee = await Employee.findById(id, 'firstName lastName email active accounts reimbursmentRequests').populate("reimbursementRequests", "title description status")
+    // const count = await 
+    return res.status(STATUS_CODE.OK).json(employee)
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+
+async function deactivateEmployee(req, res, next) {
+  try {
+    const {code, isAdmin} = req.body
+    const {id} = req.params
+
+    if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
+
+    if (!id) return res.status(STATUS_CODE.BAD_REQUEST).json("Bad Request");
+
+    const updatedEmployee = await Employee.findByIdAndUpdate(
+      id,
+      {active: false},
+      { new: true } // This option returns the updated document
+    );
+
+    if (updatedEmployee) {
+      return res.status(STATUS_CODE.NO_CONTENT).json({message: "employee deactivated sucessfully!"})
+    } else {
+      throw new ApiError()
+    }
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
 module.exports = {
   registerOrganization,
   signinOrganization,
@@ -151,4 +217,7 @@ module.exports = {
   getOrganization,
   updateOrganization,
   deleteOrganization,
+  getEmployees,
+  getEmployee,
+  deactivateEmployee,
 };

@@ -1,7 +1,12 @@
 const {Organization, CustomItemType} = require("../models/Organization");
 const { generate } = require("randomstring");
-const { STATUS_CODE, BadRequestError, ValidationError } = require("../utils/app-errors");
+const { STATUS_CODE, BadRequestError, ValidationError, ApiError } = require("../utils/app-errors");
+const bcrypt = require("bcrypt");
+const { generateAccessToken, generateRefreshToken } = require("../utils/token");
+const { generateHashedPassword } = require("../utils/globalFunctions");
 
+
+// signup/register
 async function registerOrganization(req, res, next) {
   const { name, email, password } = req.body;
 
@@ -10,27 +15,22 @@ async function registerOrganization(req, res, next) {
 
     if (existingOrg) 
       throw new ValidationError("An organization with this email already exists", STATUS_CODE.BAD_REQUEST);
+    
+    const hashedPassword = await generateHashedPassword(password);
+
+    if (!hashedPassword) throw new ApiError("Could not create organization", STATUS_CODE.INTERNAL_ERROR);
 
     const organization = new Organization({
       name,
       code: generate(8),
       email,
-      password,
+      password: hashedPassword,
       policies: {
         reimbursementLimit: '0.00'
       }
     });
 
     const data = await organization.save();
-
-    // create an others Item type
-    // const itemType = new CustomItemType({
-    //   name: 'Others',
-    //   organization: data._id,
-    //   description: 'General Type for reimbursment Items',
-    // })
-
-    // await itemType.save();
 
     await CustomItemType.create({
       name: 'others',
@@ -40,12 +40,52 @@ async function registerOrganization(req, res, next) {
 
     return res.status(STATUS_CODE.CREATED).json({ data });
   } catch (error) {
+    console.log(error)
     return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
   }
 }
 
-async function signinOrganization(req, res, next) {}
+// signin
+async function signinOrganization(req, res, next) {
+  try {
+    const { email, password } = req.body;
 
+    const findOrganization = await Organization.findOne( {email} );
+
+    if (!findOrganization) {
+      return res.status(STATUS_CODE.BAD_REQUEST).json({
+        message: "organization does not exist"
+      })
+       } else {
+      const comparePassword = await bcrypt.compare(
+        password,
+        findOrganization.password
+      )
+
+      if (!comparePassword) {
+        return res.status(STATUS_CODE.BAD_REQUEST).json({
+          message: "incorrect password or email"
+        })
+      }
+    }
+
+    const access_token = generateAccessToken(findOrganization.email, findOrganization.code, true)
+    const refresh_token = generateRefreshToken(findOrganization.email, findOrganization.code, true)
+
+    return res.status(STATUS_CODE.OK).json({
+      message: 'login successful',
+      access_token,
+      refresh_token
+    })
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+
+  }
+}
+
+
+// 
 async function getOrganization(req, res, next) {
   try {
     const organizationID = req.params.id;
@@ -106,6 +146,7 @@ async function deleteOrganization(req, res, next) {
 
 module.exports = {
   registerOrganization,
+  signinOrganization,
   getOrganizations,
   getOrganization,
   updateOrganization,

@@ -1,5 +1,6 @@
 const {
   registerOrganization,
+  signinOrganization,
   getOrganization,
   getOrganizations,
   updateOrganization,
@@ -8,6 +9,9 @@ const {
 
 const registerOrganizationController = (req, res, next) =>
   registerOrganization(req, res, next);
+
+const siginOrganizationController = (req, res, next) => 
+  signinOrganization(req, res, next);
   
 const getOrganizationController = (req, res, next) =>
   getOrganization(req, res, next);
@@ -22,6 +26,7 @@ const deleteOrganizationController = (req, res, next) =>
 
 module.exports = {
   registerOrganizationController,
+  siginOrganizationController,
   getOrganizationController,
   getOrganizationsController,
   updateOrganizationController,

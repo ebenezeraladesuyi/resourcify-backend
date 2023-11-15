@@ -1,5 +1,6 @@
 const {
   registerEmployee,
+  signinEmployee,
   getEmployees,
   getEmployee,
   updateEmployee,
@@ -8,6 +9,9 @@ const {
 
 const registerEmployeeController = (req, res, next) =>
   registerEmployee(req, res, next);
+
+const signinEmployeeController = (req, res, next) =>
+  signinEmployee(req, res, next);
   
 const getEmployeesController = (req, res, next) => getEmployees(req, res, next);
 
@@ -21,6 +25,7 @@ const deleteEmployeeController = (req, res, next) =>
 
 module.exports = {
   registerEmployeeController,
+  signinEmployeeController,
   getEmployeeController,
   getEmployeesController,
   updateEmployeeController,

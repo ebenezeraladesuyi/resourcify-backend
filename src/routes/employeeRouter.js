@@ -11,16 +11,41 @@ const isAuthorized = require("../middlewares/auth/isAuthorized");
 
 const employeeRouter = Router();
 
-employeeRouter.post("/register", registerEmployeeController);
+employeeRouter.post("/register", registerEmployeeController); // done
 
-employeeRouter.post("/signin", signinEmployeeController)
+employeeRouter.post("/signin", signinEmployeeController) // done
 
-employeeRouter.get("/",isAuthorized, getEmployeesController);
+// return details needed for the employee dashboard based on what we have on the Figma design
+// employeeRouter.get("/dashboard",isAuthorized, );
 
-employeeRouter.get("/:employeeID", isAuthorized, getEmployeeController);
+// This should save details about a reimbursment request, except the comments, items and total amount. 
+// employeeRouter.post("/request", isAuthorized, ) 
 
-employeeRouter.patch("/:employeeID", isAuthorized, updateEmployeeController);
+// This should return all reimbursment requests that belongs to an employee
+// employeeRouter.get("/request", isAuthorized, ) 
 
-employeeRouter.delete("/:employeeID", isAuthorized, deleteEmployeeController);
+// Get a particular reimbursment request based on the id provided
+// employeeRouter.get("/request/:id", isAuthorized, ) 
+
+// employeeRouter.put("/request/:id", isAuthorized, ) 
+
+// Add a comment to a reimbursment request
+// employeeRouter.post("/request/:id/comment", isAuthorized, ) 
+
+// Add a new item to a reimbursment request
+// employeeRouter.post("/request/:id/item", isAuthorized, )
+
+// employeeRouter.put("/request/:id/item", isAuthorized, )
+
+// employeeRouter.delete("/request/:id/item", isAuthorized, )
+
+// Add a comment to an individual item of a reimbursment request
+// employeeRouter.post("/request/:id/item/comment", isAuthorized, )
+
+employeeRouter.get("/me", isAuthorized, getEmployeeController);
+
+employeeRouter.put("/me", isAuthorized, updateEmployeeController);
+
+employeeRouter.delete("/me", isAuthorized, deleteEmployeeController);
 
 module.exports = employeeRouter;

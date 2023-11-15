@@ -7,6 +7,7 @@ const {
   registerOrganizationController,
   siginOrganizationController,
   getEmployeesController,
+  getEmployeeController,
 } = require("../controllers/organization");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 
@@ -22,7 +23,7 @@ organizationRouter.post('/signin', siginOrganizationController); // done
 organizationRouter.get("/employees", isAuthorized, getEmployeesController ); // done
 
 // Get a particular employee
-// organizationRouter.get("/employees/:id", isAuthorized, );
+organizationRouter.get("/employees/:id", isAuthorized, getEmployeeController);
 
 // Set the active state of the employee to false.
 // organizationRouter.delete("/employees/:id", isAuthorized, );

@@ -14,7 +14,7 @@ async function registerEmployee(req, res, next) {
   try {
     const organization = await Organization.findOne({ code: organizationCode });
 
-    if (organizationCode !== organization.code) {
+    if (!organization || organizationCode !== organization.code) {
       throw new ValidationError("Invalid organization code");
     }
   
@@ -39,9 +39,12 @@ async function registerEmployee(req, res, next) {
     await employee.save();
     organization.employees.push(employee._id);
 
+    await organization.save();
+
     return res.status(STATUS_CODE.CREATED).json(employee);
   } catch (error) {
-    return res.status(STATUS_CODE.INTERNAL_ERROR).json(error);
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
   }
 }
 

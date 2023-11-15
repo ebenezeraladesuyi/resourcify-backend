@@ -7,6 +7,15 @@ const organizationSchema = new Schema(
     code: { type: String, required: true, uppercase: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    accounts: [{
+      bankName: { type: String},
+      accountName: { type: String},
+      accountNumber: { type: Number}
+    }],
+    cards: [{
+      cardNumber: {type: Number},
+      expiryDate: {type: String}
+    }],
     employees: [{ type: Schema.Types.ObjectId, ref: "Employee" }],
     customItemTypes: [{ type: Schema.Types.ObjectId, ref: "CustomItemType" }],
     policies: {
@@ -23,10 +32,6 @@ const organizationSchema = new Schema(
 
 organizationSchema.pre("save", async function (next) {
   const user = this;
-  if (!this.isModified("password")) {
-    const salt = await bcrypt.genSalt(12);
-    user.password = await bcrypt.hash(user.password, salt);
-  }
   user.updatedAt = Date.now();
   next();
 });

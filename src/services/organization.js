@@ -1,4 +1,5 @@
 const {Organization, CustomItemType} = require("../models/Organization");
+const {Reimbursement} = require("../models/Reimbursement");
 const { generate } = require("randomstring");
 const { STATUS_CODE, BadRequestError, ValidationError, ApiError } = require("../utils/app-errors");
 const bcrypt = require("bcrypt");
@@ -152,13 +153,37 @@ async function getEmployees(req, res, next) {
 
     if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
 
-    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email')
-    // const employees = await Organization.findOne({code}).populate("employees")
+    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email active')
+    // const employees = await Organization.findOne({code}, 'employees').populate("employees")
     return res.status(STATUS_CODE.OK).json(employees)
   } catch (error) {
     console.log(error)
     return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
   }
+}
+
+async function getEmployee(req, res, next) {
+  try {
+    const {code, isAdmin} = req.body
+    const {id} = req.params
+
+    if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
+
+    if (!id) return res.status(STATUS_CODE.BAD_REQUEST).json("Bad Request");
+
+    // const employee = await Employee.findById(id, 'firstName lastName email active accounts')
+    const employee = await Employee.findById(id, 'firstName lastName email active accounts reimbursmentRequests').populate("reimbursementRequests", "title description status")
+    // const count = await 
+    return res.status(STATUS_CODE.OK).json(employee)
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+
+
+
+
 }
 
 module.exports = {
@@ -169,4 +194,5 @@ module.exports = {
   updateOrganization,
   deleteOrganization,
   getEmployees,
+  getEmployee,
 };

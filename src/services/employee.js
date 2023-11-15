@@ -57,9 +57,9 @@ async function signinEmployee(req, res, next) {
     const findEmployee = await Employee.findOne( {email} )
 
     if (!findEmployee) {
-    return res.status(STATUS_CODE.NOT_FOUND).json({
-      message: "user does not exist"
-    })
+      return res.status(STATUS_CODE.NOT_FOUND).json({
+        message: "user does not exist"
+      })
      } else {
     const comparePassword =await bcrypt.compare(
       password,
@@ -70,6 +70,8 @@ async function signinEmployee(req, res, next) {
         message: "incorrect password or email"
       })
     }
+
+    if (!findEmployee.active) throw new ValidationError("Auth Failed (Unauthorized)")
   }
 
   const access_token = generateAccessToken(findEmployee.email, findEmployee.organizationCode, false)

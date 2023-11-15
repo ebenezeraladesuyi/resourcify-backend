@@ -8,6 +8,7 @@ const {
   siginOrganizationController,
   getEmployeesController,
   getEmployeeController,
+  deactivateEmployeeController,
 } = require("../controllers/organization");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 
@@ -26,7 +27,7 @@ organizationRouter.get("/employees", isAuthorized, getEmployeesController ); // 
 organizationRouter.get("/employees/:id", isAuthorized, getEmployeeController);
 
 // Set the active state of the employee to false.
-// organizationRouter.delete("/employees/:id", isAuthorized, );
+organizationRouter.delete("/employees/:id", isAuthorized, deactivateEmployeeController);
 
 // organizationRouter.get("/dashboard", isAuthorized, );
 // organizationRouter.get("/dashboard", isAuthorized, );

@@ -180,10 +180,34 @@ async function getEmployee(req, res, next) {
     console.log(error)
     return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
   }
+}
 
 
+async function deactivateEmployee(req, res, next) {
+  try {
+    const {code, isAdmin} = req.body
+    const {id} = req.params
 
+    if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
 
+    if (!id) return res.status(STATUS_CODE.BAD_REQUEST).json("Bad Request");
+
+    const updatedEmployee = await Employee.findByIdAndUpdate(
+      id,
+      {active: false},
+      { new: true } // This option returns the updated document
+    );
+
+    if (updatedEmployee) {
+      return res.status(STATUS_CODE.NO_CONTENT).json({message: "employee deactivated sucessfully!"})
+    } else {
+      throw new ApiError()
+    }
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
 }
 
 module.exports = {
@@ -195,4 +219,5 @@ module.exports = {
   deleteOrganization,
   getEmployees,
   getEmployee,
+  deactivateEmployee,
 };

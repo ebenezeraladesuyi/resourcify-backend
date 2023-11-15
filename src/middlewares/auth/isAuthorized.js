@@ -8,7 +8,7 @@ async function isAuthorized(req, res, next) {
     (req && req.headers.authorization) || (req && req.headers.authorization);
     
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new ValidationError("Token not found");
+    next(new ValidationError("Token not found"));
   }
   
   const bearer = (authHeader?.split(' ')[1])?.replace(/^(['"])(.*?)\1$/, '$2');

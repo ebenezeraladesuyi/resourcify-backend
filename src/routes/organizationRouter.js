@@ -6,6 +6,7 @@ const {
   updateOrganizationController,
   registerOrganizationController,
   siginOrganizationController,
+  getEmployeesController,
 } = require("../controllers/organization");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 
@@ -18,7 +19,7 @@ organizationRouter.post('/signin', siginOrganizationController); // done
 // organizationRouter.get("/dashboard", isAuthorized, );
 
 // Get all employees in an organization
-// organizationRouter.get("/employees", isAuthorized, );
+organizationRouter.get("/employees", isAuthorized, getEmployeesController ); // done
 
 // Get a particular employee
 // organizationRouter.get("/employees/:id", isAuthorized, );

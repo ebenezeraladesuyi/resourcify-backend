@@ -4,6 +4,7 @@ const { STATUS_CODE, BadRequestError, ValidationError, ApiError } = require("../
 const bcrypt = require("bcrypt");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 const { generateHashedPassword } = require("../utils/globalFunctions");
+const Employee = require("../models/Employee");
 
 
 // signup/register
@@ -144,6 +145,22 @@ async function deleteOrganization(req, res, next) {
   }
 }
 
+async function getEmployees(req, res, next) {
+  try {
+    const {code, isAdmin} = req.body
+
+
+    if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
+
+    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email')
+    // const employees = await Organization.findOne({code}).populate("employees")
+    return res.status(STATUS_CODE.OK).json(employees)
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
 module.exports = {
   registerOrganization,
   signinOrganization,
@@ -151,4 +168,5 @@ module.exports = {
   getOrganization,
   updateOrganization,
   deleteOrganization,
+  getEmployees,
 };

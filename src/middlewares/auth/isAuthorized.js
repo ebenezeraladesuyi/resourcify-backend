@@ -6,17 +6,17 @@ const { verifyToken } = require("../../utils/token");
 async function isAuthorized(req, res, next) {
   const authHeader =
     (req && req.headers.authorization) || (req && req.headers.authorization);
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new ValidationError("Token not found");
   }
-
+  
   const bearer = (authHeader?.split(' ')[1])?.replace(/^(['"])(.*?)\1$/, '$2');
-
+  
   const decodedToken = verifyToken(bearer);
   if (decodedToken.error) next(new ValidationError(decodedToken.error))
-
-  req.body = {...req.body, ...decodedToken.data}
+  
+  req.body = {...req.body, ...decodedToken.data.data}
   next()
 
   // jwt.verify(authHeader.split(" ")[1], "Secret", async (err, decodedUser) => {

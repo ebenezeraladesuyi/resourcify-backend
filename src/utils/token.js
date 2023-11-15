@@ -1,4 +1,5 @@
 const envVariable = require("../config/envVariables");
+const jwt = require("jsonwebtoken");
 
 function generateAccessToken(email, code, isAdmin) {
     const data = {email, code, isAdmin}

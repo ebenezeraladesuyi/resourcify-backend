@@ -1,5 +1,6 @@
 const {
   registerOrganization,
+  signinOrganization,
   getOrganization,
   getOrganizations,
   updateOrganization,

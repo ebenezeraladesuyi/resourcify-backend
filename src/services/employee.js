@@ -1,8 +1,10 @@
 const envVariable = require("../config/envVariables");
 const Employee = require("../models/Employee");
-const Organization = require("../models/Organization");
+const {Organization} = require("../models/Organization");
 const { ValidationError, STATUS_CODE } = require("../utils/app-errors");
 const bcrypt = require("bcrypt");
+const { generateHashedPassword } = require("../utils/globalFunctions");
+const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 
 
 // signup
@@ -15,11 +17,22 @@ async function registerEmployee(req, res, next) {
     if (organizationCode !== organization.code) {
       throw new ValidationError("Invalid organization code");
     }
+  
+    const checkEmployee = await Employee.findOne({ email });
+
+    if (checkEmployee) {
+      throw new ValidationError("An Employee with this mail already exists");
+    }
+
+    const hashedPassword = await generateHashedPassword(password);
+
+    if (!hashedPassword) throw new ApiError("Could not create employee", STATUS_CODE.INTERNAL_ERROR);
+
     const employee = new Employee({
       firstName,
       lastName,
       email,
-      password,
+      password: hashedPassword,
       organizationCode,
     });
 
@@ -55,13 +68,17 @@ async function signinEmployee(req, res, next) {
       })
     }
   }
+
+  const access_token = generateAccessToken(findEmployee.email, findEmployee.organizationCode, false)
+  const refresh_token = generateRefreshToken(findEmployee.email, findEmployee.organizationCode, false)
+
   return res.status(STATUS_CODE.OK).json({
-    message: 'login successful'
+    message: 'login successful',
+    access_token,
+    refresh_token
   })
 } catch (error) {
-  return res.status(STATUS_CODE.INTERNAL_ERROR).json({
-    message: 'login unsuccessful'
-  })
+  return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
 }
 
 }

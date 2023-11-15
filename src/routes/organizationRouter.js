@@ -5,12 +5,15 @@ const {
   deleteOrganizationController,
   updateOrganizationController,
   registerOrganizationController,
+  siginOrganizationController,
 } = require("../controllers/organization");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 
 const organizationRouter = Router();
 
-organizationRouter.post("/", registerOrganizationController);
+organizationRouter.post("/register", registerOrganizationController);
+
+organizationRouter.post('/signin', siginOrganizationController)
 
 organizationRouter.get("/", isAuthorized, getOrganizationsController);
 

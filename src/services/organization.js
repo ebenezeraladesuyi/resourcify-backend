@@ -1,7 +1,10 @@
 const {Organization, CustomItemType} = require("../models/Organization");
 const { generate } = require("randomstring");
 const { STATUS_CODE, BadRequestError, ValidationError } = require("../utils/app-errors");
+const bcrypt = require("bcrypt");
 
+
+// signup/register
 async function registerOrganization(req, res, next) {
   const { name, email, password } = req.body;
 
@@ -44,8 +47,40 @@ async function registerOrganization(req, res, next) {
   }
 }
 
-async function signinOrganization(req, res, next) {}
+// signin
+async function signinOrganization(req, res, next) {
+  try {
+    const { email, password } = req.body;
 
+    const findOrganization = await Organization.findOne( {email} );
+
+    if (!findOrganization) {
+      return res.status(STATUS_CODE.BAD_REQUEST).json({
+        message: "organization does not exist"
+      })
+       } else {
+      const comparePassword =await bcrypt.compare(
+        password,
+        findOrganization.password
+      )
+      if (!comparePassword) {
+        return res.status(STATUS_CODE.BAD_REQUEST).json({
+          message: "incorrect password or email"
+        })
+      }
+    }
+    return res.status(STATUS_CODE.OK).json({
+      message: 'login successful'
+    })
+  } catch (error) {
+      return res.status(STATUS_CODE.INTERNAL_ERROR).json({
+        error
+      });
+  }
+}
+
+
+// 
 async function getOrganization(req, res, next) {
   try {
     const organizationID = req.params.id;
@@ -106,6 +141,7 @@ async function deleteOrganization(req, res, next) {
 
 module.exports = {
   registerOrganization,
+  signinOrganization,
   getOrganizations,
   getOrganization,
   updateOrganization,

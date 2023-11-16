@@ -84,27 +84,65 @@ async function signinEmployee(req, res, next) {
 }
 
 
-// 
-async function getEmployees(req, res, next) {
+async function getEmployee(req, res, next) {
   try {
-  } catch (error) {}
+    const {email, code} = req.body
+    const employee = await Employee.findOne({email, organizationCode: code}, "firstName lastName email role accounts walletBalance")
+    if (!employee) {
+      throw new BadRequestError('employee does not exist')
+    }
+
+    return res.status(STATUS_CODE.OK).json(employee)
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
 }
 
 
-async function getEmployee(req, res, next) {}
+async function updateEmployee(req, res, next) {
+  try {
+    const {email, code, firstName, lastName, role} = req.body
+
+    const employee = await Employee.findOne({email, organizationCode: code}, "firstName lastName email role accounts walletBalance")
+    if (!employee) {
+      throw new BadRequestError('employee does not exist')
+    }
+
+    if (firstName) employee.firstName = firstName
+    if (lastName) employee.lastName = lastName
+    if (role) employee.role = role
+
+    await employee.save()
+
+    return res.status(STATUS_CODE.OK).json(employee)
+  } catch(error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+
+}
 
 
-async function updateEmployee(req, res, next) {}
+async function deleteEmployee(req, res, next) {
+  try {
+    const {email, code, firstName, lastName, role} = req.body
 
+    const employee = await Employee.findOneAndDelete({email, organizationCode: code})
 
-async function deleteEmployee(req, res, next) {}
+    if (employee) {
+      return res.status(STATUS_CODE.NO_CONTENT).json({message: "Employee deleted sucessfully"})
+    } else {
+      throw new BadRequestError('employee does not exist')
+    }
+  } catch(error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
 
 
 module.exports = {
   registerEmployee,
   signinEmployee,
   getEmployee,
-  getEmployees,
   updateEmployee,
   deleteEmployee,
 };

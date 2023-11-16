@@ -11,6 +11,12 @@ const employeeSchema = new Schema(
     password: { type: String, required: true },
     organizationCode: { type: String, required: true },
     role: { type: String, required: true, default: "Staff" },
+    walletBalance: {type: Number, default: 0},
+    accounts: [{
+      bankName: {type: String, uppercase: true},
+      accountName: {type: String, uppercase: true},
+      accountNumber: {type: Number, unique: true}
+    }],
     reimbursementRequests: [
       {
         type: Types.ObjectId,

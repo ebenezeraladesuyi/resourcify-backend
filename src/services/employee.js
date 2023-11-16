@@ -5,6 +5,7 @@ const { ValidationError, STATUS_CODE } = require("../utils/app-errors");
 const bcrypt = require("bcrypt");
 const { generateHashedPassword } = require("../utils/globalFunctions");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
+const { Reimbursement } = require("../models/Reimbursement");
 
 
 // signup
@@ -43,7 +44,6 @@ async function registerEmployee(req, res, next) {
 
     return res.status(STATUS_CODE.CREATED).json(employee);
   } catch (error) {
-    console.log(error)
     return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
   }
 }
@@ -127,11 +127,15 @@ async function updateEmployee(req, res, next) {
 }
 
 
-async function deleteEmployee(req, res, next) {
+async function deactivateEmployee(req, res, next) {
   try {
-    const {email, code, firstName, lastName, role} = req.body
+    const {email, code} = req.body
 
-    const employee = await Employee.findOneAndDelete({email, organizationCode: code})
+    const employee = await Employee.findOneAndUpdate(
+      {email},
+      {active: false},
+      { new: true } // This option returns the updated document
+    );
 
     if (employee) {
       return res.status(STATUS_CODE.NO_CONTENT).json({message: "Employee deleted sucessfully"})
@@ -143,11 +147,81 @@ async function deleteEmployee(req, res, next) {
   }
 }
 
+async function getReimbursmentRequests(req, res, next) {
+  try {
+    const {email, code} = req.body
+    const employee = await Employee.findOne({email, organizationCode: code}, "_id")
+
+    if (employee) {
+      const requests = await Reimbursement.find({ownerId: employee._id}, "title description status totalAmount")
+
+      return res.status(STATUS_CODE.OK).json(requests)
+    } else {
+      throw new BadRequestError('employee does not exist')
+    }
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+
+async function getReimbursmentRequest(req, res, next) {
+  try {
+    const {email, code, id} = req.body
+
+      const request = await Reimbursement.findById(id).populate('userId', 'firstName lastName email')
+
+      return res.status(STATUS_CODE.OK).json(request)
+
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+async function getReimbursmentRequest(req, res, next) {
+  try {
+    const {email, code} = req.body
+
+    const {id} = req.params
+
+    if (!id) throw new ValidationError('parameter id is required')
+
+    const request = await Reimbursement.findById(id).populate('ownerId', 'firstName lastName email')
+
+    return res.status(STATUS_CODE.OK).json(request)
+
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+async function createReimbursmentRequest(req, res, next) {
+  try {
+    const {email, code, employeeId, title, description} = req.body
+
+    if (!employeeId || !title || !description) throw new ValidationError('title, description and employeeId are required')
+
+      const request = await Reimbursement.create({
+        title,
+        description,
+        ownerId: employeeId
+      })
+
+      return res.status(STATUS_CODE.CREATED).json(request)
+
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
 
 module.exports = {
   registerEmployee,
   signinEmployee,
   getEmployee,
   updateEmployee,
-  deleteEmployee,
+  deactivateEmployee,
+  getReimbursmentRequests,
+  getReimbursmentRequest,
+  createReimbursmentRequest,
 };

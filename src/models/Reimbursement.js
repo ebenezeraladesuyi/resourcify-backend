@@ -1,12 +1,14 @@
 const mongoose = require("mongoose");
 const { Schema, model, Types } = mongoose;
 
+const requestState = ["pending", "under review", "approved", "denied"];
+
 const reimbursementSchema = new Schema(
   {
-    title: { type: String },
-    description: { type: String },
-    status: { type: String },
-    userId: { type: Types.ObjectId, ref: "User" },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    status: { type: String, default: requestState[0] },
+    ownerId: { type: Schema.Types.ObjectId, ref: "Employee" },
     createdAt: { type: Date, default: Date.now },
     updatedAt: Date,
     comments: [{
@@ -41,4 +43,7 @@ reimbursementSchema.pre("save", function (next) {
 
 
 const Reimbursement = model("Reimbursement", reimbursementSchema);
-module.exports = Reimbursement;
+module.exports = {
+  Reimbursement,
+  requestState
+};

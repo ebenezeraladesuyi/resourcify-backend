@@ -1,20 +1,20 @@
 const jwt = require("jsonwebtoken");
-const { ValidationError } = require("../../utils/app-errors");
+const { ValidationError, STATUS_CODE } = require("../../utils/app-errors");
 const Employee = require("../../models/Employee");
 const { verifyToken } = require("../../utils/token");
 
 async function isAuthorized(req, res, next) {
-  const authHeader =
-    (req && req.headers.authorization) || (req && req.headers.authorization);
-    
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    next(new ValidationError("Token not found"));
+  const authHeader = (req && req.headers.authorization) || (req && req.headers.authorization);
+  
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log(authHeader)
+    return res.status(STATUS_CODE.BAD_REQUEST).json({message: "Authorization Bearer Token not found"});
   }
   
   const bearer = (authHeader?.split(' ')[1])?.replace(/^(['"])(.*?)\1$/, '$2');
   
   const decodedToken = verifyToken(bearer);
-  if (decodedToken.error) next(new ValidationError(decodedToken.error))
+  if (decodedToken.error) res.status(STATUS_CODE.BAD_REQUEST).json(decodedToken.error);
   
   req.body = {...req.body, ...decodedToken.data.data}
   next()

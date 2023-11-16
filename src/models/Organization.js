@@ -21,6 +21,17 @@ const organizationSchema = new Schema(
     policies: {
       reimbusmentLimit: String,
     },
+    accounts: [{
+      bankName: {type: String, uppercase: true},
+      accountName: {type: String, uppercase: true},
+      accountNumber: {type: Number, unique: true}
+    }],
+    cards: [{
+      cardName: {type: String, uppercase: true},
+      cardNumber: {type: Number, unique: true},
+      expiry: {type: String}
+    }],
+    walletBalance: {type: Number, default: 0},
     createdAt: { type: Date, default: () => Date.now(), immutable: true },
     updatedAt: Date
   },

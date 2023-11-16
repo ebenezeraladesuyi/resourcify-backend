@@ -1,11 +1,13 @@
 const { Router } = require("express");
 const {
   registerEmployeeController,
-  getEmployeesController,
   getEmployeeController,
   updateEmployeeController,
-  deleteEmployeeController,
+  deactivateEmployeeController,
   signinEmployeeController,
+  getReimbursmentRequestsController,
+  getReimbursmentRequestController,
+  createReimbursmentRequestController,
 } = require("../controllers/employee");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 
@@ -19,18 +21,18 @@ employeeRouter.post("/signin", signinEmployeeController) // done
 // employeeRouter.get("/dashboard",isAuthorized, );
 
 // This should save details about a reimbursment request, except the comments, items and total amount. 
-// employeeRouter.post("/request", isAuthorized, ) 
+employeeRouter.post("/requests", isAuthorized, createReimbursmentRequestController) 
 
 // This should return all reimbursment requests that belongs to an employee
-// employeeRouter.get("/request", isAuthorized, ) 
+employeeRouter.get("/requests", isAuthorized, getReimbursmentRequestsController) 
 
 // Get a particular reimbursment request based on the id provided
-// employeeRouter.get("/request/:id", isAuthorized, ) 
+employeeRouter.get("/requests/:id", isAuthorized, getReimbursmentRequestController) 
 
-// employeeRouter.put("/request/:id", isAuthorized, ) 
+// employeeRouter.put("/requests/:id", isAuthorized, ) 
 
 // Add a comment to a reimbursment request
-// employeeRouter.post("/request/:id/comment", isAuthorized, ) 
+// employeeRouter.post("/requests/:id/comment", isAuthorized, ) 
 
 // Add a new item to a reimbursment request
 // employeeRouter.post("/request/:id/item", isAuthorized, )
@@ -46,6 +48,6 @@ employeeRouter.get("/me", isAuthorized, getEmployeeController);
 
 employeeRouter.put("/me", isAuthorized, updateEmployeeController);
 
-employeeRouter.delete("/me", isAuthorized, deleteEmployeeController);
+employeeRouter.delete("/me", isAuthorized, deactivateEmployeeController);
 
 module.exports = employeeRouter;

@@ -15,6 +15,11 @@ async function isAuthorized(req, res, next) {
   
   const decodedToken = verifyToken(bearer);
   if (decodedToken.error) res.status(STATUS_CODE.BAD_REQUEST).json(decodedToken.error);
+
+  if (!decodedToken.data.data.isAdmin) {
+    const employeeStatus = await Employee.findOne({email: decodedToken.data.data.email}, "active")
+    if (!employeeStatus.active) return res.status(STATUS_CODE.UNAUTHORIZED).json({message: "Unauthorized"});
+  }
   
   req.body = {...req.body, ...decodedToken.data.data}
   next()

@@ -7,29 +7,22 @@ const organizationSchema = new Schema(
     code: { type: String, required: true, uppercase: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    accounts: [{
-      bankName: { type: String},
-      accountName: { type: String},
-      accountNumber: { type: Number}
-    }],
-    cards: [{
-      cardNumber: {type: Number},
-      expiryDate: {type: String}
-    }],
     employees: [{ type: Schema.Types.ObjectId, ref: "Employee" }],
     customItemTypes: [{ type: Schema.Types.ObjectId, ref: "CustomItemType" }],
     policies: {
       reimbusmentLimit: String,
     },
     accounts: [{
+      _id: { type: Schema.Types.ObjectId, auto: true }, 
       bankName: {type: String, uppercase: true},
-      accountName: {type: String, uppercase: true},
-      accountNumber: {type: Number, unique: true}
+      accountName: {type: String, uppercase: true, required: true},
+      accountNumber: {type: Number, unique: true, required: true}
     }],
     cards: [{
-      cardName: {type: String, uppercase: true},
-      cardNumber: {type: Number, unique: true},
-      expiry: {type: String}
+      _id: { type: Schema.Types.ObjectId, auto: true }, 
+      cardName: {type: String, uppercase: true, required: true},
+      cardNumber: {type: Number, unique: true, required: true},
+      expiry: {type: String, required: true}
     }],
     walletBalance: {type: Number, default: 0},
     createdAt: { type: Date, default: () => Date.now(), immutable: true },

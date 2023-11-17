@@ -12,22 +12,26 @@ const reimbursementSchema = new Schema(
     createdAt: { type: Date, default: Date.now },
     updatedAt: Date,
     comments: [{
+      _id: { type: Schema.Types.ObjectId, auto: true }, 
       sender: {type: Schema.Types.Mixed, required: true},
       message: {type: String, required: true},
       date: {type: Date, default: Date.now, immutable: true}
     }],
     items: [{
+      _id: { type: Schema.Types.ObjectId, auto: true }, 
       name: { type: String, required: true },
       content: {type: String },
       type: {type: Schema.Types.ObjectId, ref: "CustomItemType"},
+      imgUrl: {type: String},
       amount: {type: String, required: true },
       comments: [{
+        _id: { type: Schema.Types.ObjectId, auto: true }, 
         sender: {type: Schema.Types.Mixed, required: true},
         message: {type: String, required: true},
         date: {type: Date, default: Date.now, immutable: true}
       }],
     }],
-    totalAmount: {type: String}
+    totalAmount: {type: String, default: "0"}
   },
   {
     versionKey: false,
@@ -37,6 +41,9 @@ const reimbursementSchema = new Schema(
 
 
 reimbursementSchema.pre("save", function (next) {
+  const totalAmount = this.items.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+  this.totalAmount = totalAmount.toString();
+
   this.updatedAt = Date.now();
   next();
 });

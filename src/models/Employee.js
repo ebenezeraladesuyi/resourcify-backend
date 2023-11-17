@@ -9,15 +9,11 @@ const employeeSchema = new Schema(
     active: { type: Boolean, default: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    accounts: [{
-      bankName: { type: String},
-      accountName: { type: String},
-      accountNumber: { type: Number}
-    }],
     organizationCode: { type: String, required: true },
     role: { type: String, required: true, default: "Staff" },
     walletBalance: {type: Number, default: 0},
     accounts: [{
+      _id: { type: Schema.Types.ObjectId, auto: true }, 
       bankName: {type: String, uppercase: true},
       accountName: {type: String, uppercase: true},
       accountNumber: {type: Number, unique: true}

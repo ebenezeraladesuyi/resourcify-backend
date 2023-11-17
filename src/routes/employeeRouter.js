@@ -6,10 +6,13 @@ const {
   deactivateEmployeeController,
   signinEmployeeController,
   getReimbursmentRequestsController,
-  getReimbursmentRequestController,
   createReimbursmentRequestController,
+  createReimbursmentRequestItemController,
+  updateReimbursmentRequestItemController,
+  deleteReimbursementRequestItemController,
 } = require("../controllers/employee");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
+const { getReimbursmentRequestController, getItemTypesController } = require("../controllers/common");
 
 const employeeRouter = Router();
 
@@ -29,17 +32,21 @@ employeeRouter.get("/requests", isAuthorized, getReimbursmentRequestsController)
 // Get a particular reimbursment request based on the id provided
 employeeRouter.get("/requests/:id", isAuthorized, getReimbursmentRequestController) 
 
+employeeRouter.get("/item-types", isAuthorized, getItemTypesController) 
+
+
+
 // employeeRouter.put("/requests/:id", isAuthorized, ) 
 
 // Add a comment to a reimbursment request
 // employeeRouter.post("/requests/:id/comment", isAuthorized, ) 
 
 // Add a new item to a reimbursment request
-// employeeRouter.post("/request/:id/item", isAuthorized, )
+employeeRouter.post("/requests/:id/item", isAuthorized, createReimbursmentRequestItemController)
 
-// employeeRouter.put("/request/:id/item", isAuthorized, )
+employeeRouter.put("/requests/:id/item/:itemId", isAuthorized, updateReimbursmentRequestItemController)
 
-// employeeRouter.delete("/request/:id/item", isAuthorized, )
+employeeRouter.delete("/requests/:id/item/:itemId", isAuthorized, deleteReimbursementRequestItemController)
 
 // Add a comment to an individual item of a reimbursment request
 // employeeRouter.post("/request/:id/item/comment", isAuthorized, )

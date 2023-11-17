@@ -178,22 +178,6 @@ async function getReimbursmentRequest(req, res, next) {
   }
 }
 
-async function getReimbursmentRequest(req, res, next) {
-  try {
-    const {email, code} = req.body
-
-    const {id} = req.params
-
-    if (!id) throw new ValidationError('parameter id is required')
-
-    const request = await Reimbursement.findById(id).populate('ownerId', 'firstName lastName email')
-
-    return res.status(STATUS_CODE.OK).json(request)
-
-  } catch (error) {
-    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
-  }
-}
 
 async function createReimbursmentRequest(req, res, next) {
   try {
@@ -214,6 +198,122 @@ async function createReimbursmentRequest(req, res, next) {
   }
 }
 
+async function createReimbursmentRequestItem(req, res, next) {
+  try {
+    const {name, amount, content, type} = req.body
+    const {id} = req.params
+
+    if (!id || !name || !amount || !content || !type) throw new ValidationError('id param, name, amount, content and type are required')
+
+    // add a new reimbursment item and return the added item
+    const request = await Reimbursement.findById(id).populate('items')
+
+    const item = await request.items.create({
+      name,
+      content,
+      type,
+      amount
+    })
+
+    request.items.push(item)
+    await request.save()
+
+    return res.status(STATUS_CODE.CREATED).json(item)
+
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+async function updateReimbursmentRequestItem(req, res, next) {
+  try {
+    const { name, amount, content, type, email } = req.body;
+    const { id, itemId } = req.params;
+
+    if (!id || !itemId) throw new ValidationError('request id param, and item id param are required');
+
+    // find the particular item with the item id, and check if the ownerId belongs to a user with the same email
+    const request = await Reimbursement.findById(id, "items ownerId");
+
+    if (!request) {
+      throw new NotFoundError('Reimbursement request not found');
+    }
+
+    const author = await Employee.findOne({ email }, "_id");
+
+    if (!author) {
+      throw new NotFoundError('Author not found');
+    }
+
+    const item = request.items.id(itemId);
+
+    if (!item) {
+      throw new NotFoundError('Item not found');
+    }
+
+    if (request.ownerId.toString() !== author._id.toString()) {
+      throw new ValidationError('You are not the author of this request');
+    }
+
+    if (name) item.name = name;
+    if (amount) item.amount = amount;
+    if (content) item.content = content;
+    if (type) item.type = type;
+
+    await request.save();
+
+    return res.status(STATUS_CODE.OK).json(item);
+
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+
+async function deleteReimbursementRequestItem(req, res, next) {
+  try {
+    const { email } = req.body;
+    const { id, itemId } = req.params;
+
+    if (!id || !itemId) throw new ValidationError('request id param and item id param are required');
+
+    // Find the particular item with the item id and check if the ownerId belongs to a user with the same email
+    const request = await Reimbursement.findById(id, 'items ownerId');
+
+    if (!request) {
+      throw new NotFoundError('Reimbursement request not found');
+    }
+
+    const author = await Employee.findOne({ email }, '_id');
+
+    if (!author) {
+      throw new NotFoundError('Author not found');
+    }
+
+    const item = request.items.id(itemId);
+
+    if (!item) {
+      throw new NotFoundError('Item not found');
+    }
+
+    if (request.ownerId.toString() !== author._id.toString()) {
+      throw new ValidationError('You are not the author of this request');
+    }
+
+    // Remove the item from the items array using pull
+    request.items.pull(itemId);
+
+    // Save the parent document to persist the changes to the items array
+    await request.save();
+
+    return res.status(STATUS_CODE.NO_CONTENT).json(item);
+
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+
 
 module.exports = {
   registerEmployee,
@@ -222,6 +322,8 @@ module.exports = {
   updateEmployee,
   deactivateEmployee,
   getReimbursmentRequests,
-  getReimbursmentRequest,
   createReimbursmentRequest,
+  createReimbursmentRequestItem,
+  updateReimbursmentRequestItem,
+  deleteReimbursementRequestItem,
 };

@@ -34,12 +34,6 @@ async function registerOrganization(req, res, next) {
 
     const data = await organization.save();
 
-    await CustomItemType.create({
-      name: 'others',
-      organization: data._id,
-      description: 'General Type for reimbursment items',
-    })
-
     return res.status(STATUS_CODE.CREATED).json({ data });
   } catch (error) {
     console.log(error)

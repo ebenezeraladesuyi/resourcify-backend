@@ -35,8 +35,22 @@ const organizationSchema = new Schema(
 );
 
 organizationSchema.pre("save", async function (next) {
-  const user = this;
-  user.updatedAt = Date.now();
+  const organization = this;
+  organization.updatedAt = Date.now();
+
+  if (organization.isNew) {
+    try {
+      const type = await CustomItemType.create({
+        name: 'others',
+        organization: organization._id,
+        description: 'General Type for reimbursement items',
+      });
+      organization.customItemTypes.push(type._id);
+    } catch (error) {
+      console.error('Error creating CustomItemType:', error.message);
+    }
+  }
+
   next();
 });
 

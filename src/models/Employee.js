@@ -7,10 +7,13 @@ const employeeSchema = new Schema(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     active: { type: Boolean, default: true },
+    lastLogin: {type: Date, default: Date.now},
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     organizationCode: { type: String, required: true },
     role: { type: String, required: true, default: "Staff" },
+    createdAt: { type: Date, default: () => Date.now(), immutable: true },
+    updatedAt: Date,
     walletBalance: {type: Number, default: 0},
     accounts: [{
       _id: { type: Schema.Types.ObjectId, auto: true }, 

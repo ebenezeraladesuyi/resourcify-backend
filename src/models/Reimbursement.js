@@ -11,12 +11,7 @@ const reimbursementSchema = new Schema(
     ownerId: { type: Schema.Types.ObjectId, ref: "Employee" },
     createdAt: { type: Date, default: Date.now },
     updatedAt: Date,
-    comments: [{
-      _id: { type: Schema.Types.ObjectId, auto: true }, 
-      sender: {type: Schema.Types.Mixed, required: true},
-      message: {type: String, required: true},
-      date: {type: Date, default: Date.now, immutable: true}
-    }],
+    comments: [{type: Schema.Types.ObjectId, ref: "Comment"}],
     items: [{
       _id: { type: Schema.Types.ObjectId, auto: true }, 
       name: { type: String, required: true },
@@ -24,12 +19,7 @@ const reimbursementSchema = new Schema(
       type: {type: Schema.Types.ObjectId, ref: "CustomItemType"},
       imgUrl: {type: String},
       amount: {type: String, required: true },
-      comments: [{
-        _id: { type: Schema.Types.ObjectId, auto: true }, 
-        sender: {type: Schema.Types.Mixed, required: true},
-        message: {type: String, required: true},
-        date: {type: Date, default: Date.now, immutable: true}
-      }],
+      comments: [{type: Schema.Types.ObjectId, ref: "Comment"}],
     }],
     totalAmount: {type: String, default: "0"}
   },
@@ -49,8 +39,26 @@ reimbursementSchema.pre("save", function (next) {
 });
 
 
+const commentSchema = new Schema({
+  comment: { type: String, required: true },
+  sender: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    refPath: 'docModel'
+  },
+  date: {type: Date, default: Date.now, immutable: true},
+  docModel: {
+    type: String,
+    required: true,
+    enum: ['Organization', 'Employee']
+  }
+})
+
+
 const Reimbursement = model("Reimbursement", reimbursementSchema);
+const Comment = model("Comment", commentSchema);
 module.exports = {
   Reimbursement,
+  Comment,
   requestState
 };

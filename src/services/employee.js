@@ -74,9 +74,12 @@ async function signinEmployee(req, res, next) {
     if (!findEmployee.active) throw new ValidationError("Auth Failed (Unauthorized)")
   }
 
+
   const access_token = generateAccessToken(findEmployee.email, findEmployee.organizationCode, false)
   const refresh_token = generateRefreshToken(findEmployee.email, findEmployee.organizationCode, false)
 
+  findEmployee.lastLogin = Date.now()
+  await findEmployee.save()
   return res.status(STATUS_CODE.OK).json({
     message: 'login successful',
     access_token,

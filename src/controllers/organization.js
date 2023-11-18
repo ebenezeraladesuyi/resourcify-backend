@@ -9,6 +9,7 @@ const {
   getEmployee,
   deactivateEmployee,
   approveOrRejectRequest,
+  getDashboardDetails,
 } = require("../services/organization");
 
 const registerOrganizationController = (req, res, next) =>
@@ -16,6 +17,9 @@ const registerOrganizationController = (req, res, next) =>
 
 const siginOrganizationController = (req, res, next) => 
   signinOrganization(req, res, next);
+
+const getDashboardDetailsController = (req, res, next) =>
+  getDashboardDetails(req, res, next)
   
 const getOrganizationController = (req, res, next) =>
   getOrganization(req, res, next);
@@ -50,5 +54,6 @@ module.exports = {
   getEmployeesController,
   getEmployeeController,
   deactivateEmployeeController,
-  approveOrRejectRequestController
+  approveOrRejectRequestController,
+  getDashboardDetailsController
 };

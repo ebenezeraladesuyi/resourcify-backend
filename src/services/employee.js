@@ -6,6 +6,8 @@ const bcrypt = require("bcrypt");
 const { generateHashedPassword } = require("../utils/globalFunctions");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 const { Reimbursement } = require("../models/Reimbursement");
+const Transaction = require("../models/Transaction");
+const { default: mongoose } = require("mongoose");
 
 
 // signup
@@ -316,6 +318,83 @@ async function deleteReimbursementRequestItem(req, res, next) {
   }
 }
 
+async function getDashboardDetails(req, res, next) {
+  try {
+    const {code, email} = req.body
+
+    const data = {}
+
+    const employee = await Employee.findOne({ email }, 'walletBalance');
+
+    data.balance = employee.walletBalance
+
+    // get the total reimbursment received every month within this year
+    const reimbursmentTransactionsWithinThisYear = await Transaction.find({ transactionType: "Reimbursment", org: code, author: employee._id, date: {$gte: new Date(new Date().getFullYear(), 0, 1), $lte: new Date(new Date().getFullYear(), 11, 31)}}, 'amount date')
+    const reimbursmentTransactionsWithinLastYear = 
+      await Transaction.find({transactionType: "Reimbursement", org: code, author: employee._id, date: {$gte: new Date(new Date().getFullYear() - 1, 0, 1), $lte: new Date(new Date().getFullYear() - 1, 11, 31)}}, 'amount date')
+
+  
+      const calculateStatisticsForAYear = (transactions, dataKey) => {
+        const monthlyTotals = {};
+    
+        // Iterate through each transaction
+        transactions.forEach((transaction) => {
+            const date = new Date(transaction.date);
+            const month = date.toLocaleString('default', { month: 'long' }); // Get the month name
+    
+            // Initialize the monthly total if it doesn't exist
+            if (!monthlyTotals[month]) {
+                monthlyTotals[month] = 0;
+            }
+    
+            // Add the transaction amount to the monthly total
+            monthlyTotals[month] += parseFloat(transaction.amount);
+        });
+    
+        // Convert the result to an array of objects
+        const resultArray = Object.keys(monthlyTotals).map((month) => ({
+            total: monthlyTotals[month],
+            month: month,
+        }));
+    
+        data[dataKey] = resultArray;
+    };
+
+    calculateStatisticsForAYear(reimbursmentTransactionsWithinThisYear, 'totalReimbursmentsPerMonthThisYear');
+    calculateStatisticsForAYear(reimbursmentTransactionsWithinLastYear, 'totalReimbursmentsPerMonthLastYear');
+    
+    data.topTenRecentRequests = await Reimbursement.find({ ownerId: employee._id }, 'title createdAt totalAmount status')
+    .sort({ createdAt: -1 }) // Sort in descending order based on the update date
+    .limit(10); // Limit the result to the last 10 requests
+
+    data.itemTypeRanking = await Reimbursement.aggregate([
+      { $match: { ownerId: employee._id } },
+      { $unwind: "$items" },
+      { $lookup: { from: "customitemtypes", localField: "items.type", foreignField: "_id", as: "itemType" } },
+      { $unwind: "$itemType" },
+      {
+          $group: {
+              _id: "$itemType.name",
+              count: { $sum: 1 },
+          },
+      },
+      {
+          $project: {
+              _id: 0,
+              type: "$_id",
+              percentage: { $multiply: [{ $divide: ["$count", { $literal: 1 }] }, 100] },
+          },
+      },
+  ]);
+
+  return res.status(STATUS_CODE.OK).json(data);
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
 
 
 module.exports = {
@@ -329,4 +408,5 @@ module.exports = {
   createReimbursmentRequestItem,
   updateReimbursmentRequestItem,
   deleteReimbursementRequestItem,
+  getDashboardDetails,
 };

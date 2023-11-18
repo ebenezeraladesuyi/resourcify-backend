@@ -14,7 +14,7 @@ async function isAuthorized(req, res, next) {
   const bearer = (authHeader?.split(' ')[1])?.replace(/^(['"])(.*?)\1$/, '$2');
   
   const decodedToken = verifyToken(bearer);
-  if (decodedToken.error) res.status(STATUS_CODE.BAD_REQUEST).json(decodedToken.error);
+  if (decodedToken.error) return res.status(STATUS_CODE.BAD_REQUEST).json(decodedToken.error);
 
   if (!decodedToken.data.data.isAdmin) {
     const employeeStatus = await Employee.findOne({email: decodedToken.data.data.email}, "active")

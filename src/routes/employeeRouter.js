@@ -12,7 +12,7 @@ const {
   deleteReimbursementRequestItemController,
 } = require("../controllers/employee");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
-const { getReimbursmentRequestController, getItemTypesController } = require("../controllers/common");
+const { getReimbursmentRequestController, getItemTypesController, addCommentToRequestItemController, addCommentToRequestController } = require("../controllers/common");
 
 const employeeRouter = Router();
 
@@ -49,7 +49,8 @@ employeeRouter.put("/requests/:id/item/:itemId", isAuthorized, updateReimbursmen
 employeeRouter.delete("/requests/:id/item/:itemId", isAuthorized, deleteReimbursementRequestItemController)
 
 // Add a comment to an individual item of a reimbursment request
-// employeeRouter.post("/request/:id/item/comment", isAuthorized, )
+employeeRouter.post("/requests/:id/comment", isAuthorized, addCommentToRequestController )
+employeeRouter.post("/requests/:id/item/:itemId/comment", isAuthorized, addCommentToRequestItemController )
 
 employeeRouter.get("/me", isAuthorized, getEmployeeController);
 

@@ -13,7 +13,10 @@ const reimbursementSchema = new Schema(
     updatedAt: Date,
     comments: [{
       _id: { type: Schema.Types.ObjectId, auto: true }, 
-      sender: {type: Schema.Types.Mixed, required: true},
+      sender: {
+        type: { type: String, enum: ['Organization', 'Employee'] },
+        data: { type: Schema.Types.ObjectId, refPath: 'comments.sender.type', required: true },
+      },
       message: {type: String, required: true},
       date: {type: Date, default: Date.now, immutable: true}
     }],
@@ -26,7 +29,10 @@ const reimbursementSchema = new Schema(
       amount: {type: String, required: true },
       comments: [{
         _id: { type: Schema.Types.ObjectId, auto: true }, 
-        sender: {type: Schema.Types.Mixed, required: true},
+        sender: {
+          type: { type: String, enum: ['Organization', 'Employee'] },
+          data: { type: Schema.Types.ObjectId, refPath: 'items.comments.sender.type', required: true },
+        },
         message: {type: String, required: true},
         date: {type: Date, default: Date.now, immutable: true}
       }],
@@ -49,8 +55,26 @@ reimbursementSchema.pre("save", function (next) {
 });
 
 
+commentSchema= new Schema({
+  comment: { type: String, required: true },
+  sender: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    refPath: 'docModel'
+  },
+  date: {type: Date, default: Date.now, immutable: true}
+  docModel: {
+    type: String,
+    required: true,
+    enum: ['Organization', 'Employee']
+  }
+})
+
+
 const Reimbursement = model("Reimbursement", reimbursementSchema);
+const Comment = model("Comment", commentSchema);
 module.exports = {
   Reimbursement,
+  Comment,
   requestState
 };

@@ -1,6 +1,6 @@
 const Employee = require("../models/Employee");
 const { CustomItemType, Organization } = require("../models/Organization");
-const { Reimbursement } = require("../models/Reimbursement");
+const { Reimbursement, Comment } = require("../models/Reimbursement");
 const { STATUS_CODE } = require("../utils/app-errors");
 
 
@@ -18,29 +18,35 @@ async function getReimbursmentRequest(req, res, next) {
         select: 'firstName lastName email',
       })
       .populate({
-        path: 'comments.sender.data',
-        select: "name firstName lastName email",
+        path: 'comments',
+        populate: {
+            path: 'sender',
+            select: 'firstName lastName name email',
+        }
       })
       .populate({
         path: 'items.type',
         select: 'name',
       })
       .populate({
-        path: 'items.comments.sender.data',
-        select: {
-          $cond: {
-            if: { $eq: ['$items.comments.sender.type', 'Organization'] },
-            then: 'name email', // Organization
-            else: 'firstName lastName email', // Employee
-          },
-        },
+        path: 'items.comments',
+        populate: {
+            path: 'sender',
+            select: 'firstName lastName name email',
+        }
       });
-    
-  
+
+    // Sort comments in the request object
+    request.comments.sort((a, b) => a.date - b.date);
+
+    // Sort comments within each item in request.items
+    request.items.forEach(item => {
+        item.comments.sort((a, b) => a.date - b.date);
+    });
+
       return res.status(STATUS_CODE.OK).json(request)
   
     } catch (error) {
-        console.log(error)
       return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
     }
 }
@@ -55,7 +61,6 @@ async function getItemTypes(req, res, next) {
   
       return res.status(STATUS_CODE.OK).json(itemTypes)
     } catch(error) {
-        console.log(error)
       return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
     }
 }
@@ -78,18 +83,21 @@ async function addCommmentToRequestItem(req, res, next) {
             throw new NotFoundError('Item not found');
         }
 
-        item.comments.push({
-            message: comment,
-            sender: { type: isAdmin ? 'Organization' : 'Employee', data: user._id },
-            date: new Date()
+        const comm = await Comment.create({
+            comment,
+            sender: user._id,
+            docModel: isAdmin ? "Organization": "Employee"
         })
+
+        item.comments.push(comm._id)
 
         await request.save();
 
 
-    return res.status(STATUS_CODE.OK).json(item);
+    return res.status(STATUS_CODE.OK).json(comm);
 
     } catch (error) {
+        console.log(error)
         return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
     }
 }
@@ -106,20 +114,19 @@ async function addCommmentToRequest(req, res, next) {
 
         if (!isAdmin && !user._id.equals(request.ownerId._id)) throw new ValidationError("Your are not the author of this request")
 
-        const newComment = {
-            message: comment,
-            sender: { type: isAdmin ? 'Organization' : 'Employee', data: user._id },
-            date: new Date()
-        };
+        const comm = await Comment.create({
+            comment,
+            sender: user._id,
+            docModel: isAdmin ? "Organization": "Employee"
+        })
 
-        request.comments.push(newComment)
+        request.comments.push(comm._id)
 
         await request.save();
 
-    return res.status(STATUS_CODE.OK).json(newComment);
+    return res.status(STATUS_CODE.OK).json(comm);
 
     } catch (error) {
-        console.log(error)
         return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
     }
 }

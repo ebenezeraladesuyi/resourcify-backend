@@ -9,6 +9,7 @@ const {
   createReimbursmentRequestItem,
   updateReimbursmentRequestItem,
   deleteReimbursementRequestItem,
+  getDashboardDetails,
 } = require("../services/employee");
 
 const registerEmployeeController = (req, res, next) =>
@@ -16,6 +17,9 @@ const registerEmployeeController = (req, res, next) =>
 
 const signinEmployeeController = (req, res, next) =>
   signinEmployee(req, res, next);
+
+const getDashboardDetailsController = (req, res, next) =>
+  getDashboardDetails(req, res, next)
   
 const getEmployeeController = (req, res, next) => getEmployee(req, res, next);
 
@@ -53,5 +57,5 @@ module.exports = {
   createReimbursmentRequestItemController,
   updateReimbursmentRequestItemController,
   deleteReimbursementRequestItemController,
-
+  getDashboardDetailsController,
 };

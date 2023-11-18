@@ -10,6 +10,7 @@ const {
   getEmployeeController,
   deactivateEmployeeController,
   approveOrRejectRequestController,
+  getDashboardDetailsController,
 } = require("../controllers/organization");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 const { addCommentToRequestController, addCommentToRequestItemController, getReimbursmentRequestController } = require("../controllers/common");
@@ -31,7 +32,7 @@ organizationRouter.get("/employees/:id", isAuthorized, getEmployeeController);
 // Set the active state of the employee to false.
 organizationRouter.delete("/employees/:id", isAuthorized, deactivateEmployeeController);
 
-// organizationRouter.get("/dashboard", isAuthorized, );
+organizationRouter.get("/dashboard", isAuthorized, getDashboardDetailsController);
 // organizationRouter.get("/dashboard", isAuthorized, );
 
 // Get a particular reimbursment request based on the id provided

@@ -148,7 +148,7 @@ async function getEmployees(req, res, next) {
 
     if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
 
-    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email active')
+    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email active lastLogin')
     // const employees = await Organization.findOne({code}, 'employees').populate("employees")
     return res.status(STATUS_CODE.OK).json(employees)
   } catch (error) {
@@ -232,12 +232,28 @@ async function approveOrRejectRequest(req, res, next) {
       const updatedEmployee = await Employee.findByIdAndUpdate(request.ownerId, {wallet: (wallet + amount).toString()}, {new: true})
 
       if (updatedOrg && updatedEmployee) {
-        const trans = Transaction.create({
+        const transRemove = Transaction.create({
           transactionType: "Reimbursement",
           requestId: id,
+          employee: request.ownerId,
+          amount: amount,
+          deduction: true,
+          org: code,
+          model: 'Organization',
+          author: org._id
         })
 
-        if (trans) {
+        const transAdd = Transaction.create({
+          transactionType: "Reimbursement",
+          requestId: id,
+          amount: amount,
+          deduction: false,
+          org: code,
+          model: 'Employee',
+          author: updatedEmployee._id
+        })
+
+        if (transRemove && transAdd) {
           request.status = requestState[2]
           await request.save()
           return res.status(STATUS_CODE.OK).json({message: "request approved sucessfully!"})
@@ -257,6 +273,70 @@ async function approveOrRejectRequest(req, res, next) {
 
 }
 
+async function getDashboardDetails(req, res, next) {
+  try {
+    const {code} = req.body
+
+    const data = {}
+
+    const org = await Organization.findOne({code})
+    data.balance = org.walletBalance
+
+    const reimbursmentTransactions = await Transaction.find({transactionType: "Reimbursement", org: code, author: org._id}, 'amount')
+    data.totalAmountDisbursed = reimbursmentTransactions.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
+
+    const walletFundingTransactions = await Transaction.find({transactionType: "Top Up", org: code, author: org._id}, 'amount')
+    data.totalAmountFunded = walletFundingTransactions.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
+
+    const reimbursmentTransactionsWithinThisYear = await Transaction.find({transactionType: "Reimbursement", org: code, author: org._id, date: {$gte: new Date(new Date().getFullYear(), 0, 1), $lte: new Date(new Date().getFullYear(), 11, 31)}}, 'amount employee')
+    const reimbursmentTransactionsWithinLastYear = 
+      await Transaction.find({transactionType: "Reimbursement", org: code, author: org._id, date: {$gte: new Date(new Date().getFullYear() - 1, 0, 1), $lte: new Date(new Date().getFullYear() - 1, 11, 31)}}, 'amount employee')
+
+    const getTop10 = async (arr, dataKey) => {
+      // calculate top 10 employees with the most expense within a given year
+      // arr is the array of reimbursement transactions within a given year
+      // dataKey is the corresponding key for the result response to be returned
+      const sortByTop10 = {};
+      arr.forEach((transaction) => {
+        if (transaction.employee in sortByTop10) {
+          sortByTop10[transaction.employee].total += parseFloat(transaction.amount);
+          sortByTop10[transaction.employee].count += 1;
+        } else {
+          sortByTop10[transaction.employee] = {
+            total: parseFloat(transaction.amount),
+            count: 1,
+          };
+        }
+      });
+
+      // Convert sortByTop10 into an array sorted in decreasing order from item.count
+      const top10 = Object.keys(sortByTop10).sort(
+        (a, b) => sortByTop10[b].count - sortByTop10[a].count
+      ).slice(0, 10);
+  
+      data[dataKey] = await Promise.all(
+        top10.map(async (employee) => {
+          const user = await Employee.findById(employee, 'firstName lastName');
+          return {
+            employee: user,
+            total: sortByTop10[employee].total,
+            count: sortByTop10[employee].count,
+          };
+        })
+      );
+    }
+
+    await getTop10(reimbursmentTransactionsWithinThisYear, 'topTenEmployeesWithMostExpenseThisYear')
+    await getTop10(reimbursmentTransactionsWithinLastYear, 'topTenEmployeesWithMostExpenseLastYear')
+
+    return res.status(STATS_CODE.OK).json(data);
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
 module.exports = {
   registerOrganization,
   signinOrganization,
@@ -268,4 +348,5 @@ module.exports = {
   getEmployee,
   deactivateEmployee,
   approveOrRejectRequest,
+  getDashboardDetails,
 };

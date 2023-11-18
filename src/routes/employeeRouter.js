@@ -10,6 +10,7 @@ const {
   createReimbursmentRequestItemController,
   updateReimbursmentRequestItemController,
   deleteReimbursementRequestItemController,
+  getDashboardDetailsController,
 } = require("../controllers/employee");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 const { getReimbursmentRequestController, getItemTypesController, addCommentToRequestItemController, addCommentToRequestController } = require("../controllers/common");
@@ -21,7 +22,7 @@ employeeRouter.post("/register", registerEmployeeController); // done
 employeeRouter.post("/signin", signinEmployeeController) // done
 
 // return details needed for the employee dashboard based on what we have on the Figma design
-// employeeRouter.get("/dashboard",isAuthorized, );
+employeeRouter.get("/dashboard",isAuthorized, getDashboardDetailsController);
 
 // This should save details about a reimbursment request, except the comments, items and total amount. 
 employeeRouter.post("/requests", isAuthorized, createReimbursmentRequestController) 

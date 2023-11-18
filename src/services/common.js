@@ -1,12 +1,12 @@
 const Employee = require("../models/Employee");
 const { CustomItemType, Organization } = require("../models/Organization");
-const { Reimbursement, Comment } = require("../models/Reimbursement");
+const { Reimbursement, Comment, requestState } = require("../models/Reimbursement");
 const { STATUS_CODE } = require("../utils/app-errors");
 
 
 async function getReimbursmentRequest(req, res, next) {
     try {
-      const {email, code} = req.body
+      const {email, code, isAdmin} = req.body
   
       const {id} = req.params
   
@@ -35,6 +35,11 @@ async function getReimbursmentRequest(req, res, next) {
             select: 'firstName lastName name email',
         }
       });
+
+    if (request.status === requestState[0]) {
+        request.status = requestState[1];
+        await request.save()
+    }
 
     // Sort comments in the request object
     request.comments.sort((a, b) => a.date - b.date);

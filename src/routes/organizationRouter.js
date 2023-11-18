@@ -9,6 +9,7 @@ const {
   getEmployeesController,
   getEmployeeController,
   deactivateEmployeeController,
+  approveOrRejectRequestController,
 } = require("../controllers/organization");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 const { addCommentToRequestController, addCommentToRequestItemController, getReimbursmentRequestController } = require("../controllers/common");
@@ -35,10 +36,11 @@ organizationRouter.delete("/employees/:id", isAuthorized, deactivateEmployeeCont
 
 // Get a particular reimbursment request based on the id provided
 organizationRouter.get("/requests/:id", isAuthorized, getReimbursmentRequestController)
+organizationRouter.patch("/requests/:id", isAuthorized, approveOrRejectRequestController)
 
 // Add a comment to an individual item of a reimbursment request
-organziationRouter.post("/requests/:id/comment", isAuthorized, addCommentToRequestController )
-organziationRouter.post("/requests/:id/item/:itemId/comment", isAuthorized, addCommentToRequestItemController )
+organizationRouter.post("/requests/:id/comment", isAuthorized, addCommentToRequestController )
+organizationRouter.post("/requests/:id/item/:itemId/comment", isAuthorized, addCommentToRequestItemController )
 
 
 

@@ -1,11 +1,12 @@
 const {Organization, CustomItemType} = require("../models/Organization");
-const {Reimbursement} = require("../models/Reimbursement");
+const {Reimbursement, requestState} = require("../models/Reimbursement");
 const { generate } = require("randomstring");
 const { STATUS_CODE, BadRequestError, ValidationError, ApiError } = require("../utils/app-errors");
 const bcrypt = require("bcrypt");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 const { generateHashedPassword } = require("../utils/globalFunctions");
 const Employee = require("../models/Employee");
+const Transaction = require("../models/Transaction");
 
 
 // signup/register
@@ -204,6 +205,58 @@ async function deactivateEmployee(req, res, next) {
   }
 }
 
+async function approveOrRejectRequest(req, res, next) {
+  try {
+    const {code} = req.body
+    const {id} = req.params
+    const {status} = req.query
+
+
+    if (!id || !status) return res.status(STATUS_CODE.BAD_REQUEST).json("Bad Request");
+
+    const request = await Reimbursement.findById(id)
+
+    if (!request) return res.status(STATUS_CODE.NOT_FOUND).json("Not Found");
+
+    if (["approved", "rejected"].indexOf(status) === -1) return res.status(STATUS_CODE.BAD_REQUEST).json({message: "Bad Request, status must be either approved or rejected"});
+    if (status === "approved") {
+      const org = await Organization.findOne({code}, "walletBalance")
+
+      const amount = parseFloat(request.totalAmount)
+      const wallet = parseFloat(org.walletBalance)
+
+      if (wallet < amount) return res.status(STATUS_CODE.BAD_REQUEST).json({message: "Bad Request, insufficient wallet balance"})
+
+
+      const updatedOrg = await Organization.findByIdAndUpdate(org._id, {wallet: (wallet - amount).toString()}, {new: true})
+      const updatedEmployee = await Employee.findByIdAndUpdate(request.ownerId, {wallet: (wallet + amount).toString()}, {new: true})
+
+      if (updatedOrg && updatedEmployee) {
+        const trans = Transaction.create({
+          transactionType: "Reimbursement",
+          requestId: id,
+        })
+
+        if (trans) {
+          request.status = requestState[2]
+          await request.save()
+          return res.status(STATUS_CODE.OK).json({message: "request approved sucessfully!"})
+        }
+      }
+
+      throw new ApiError(STATUS_CODE.INTERNAL_ERROR, "Unable to approve request");
+    } else {
+      request.status = requestState[3]
+      await request.save()
+      return res.status(STATUS_CODE.OK).json({message: "request rejected sucessfully!"})
+    }
+
+  } catch (error) {
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+
+}
+
 module.exports = {
   registerOrganization,
   signinOrganization,
@@ -214,4 +267,5 @@ module.exports = {
   getEmployees,
   getEmployee,
   deactivateEmployee,
+  approveOrRejectRequest,
 };

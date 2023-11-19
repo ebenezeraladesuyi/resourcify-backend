@@ -10,6 +10,9 @@ const {
   deactivateEmployee,
   approveOrRejectRequest,
   getDashboardDetails,
+  addCard,
+  removeCard,
+  fundWallet,
 } = require("../services/organization");
 
 const registerOrganizationController = (req, res, next) =>
@@ -44,6 +47,19 @@ const deactivateEmployeeController = (req, res, next) =>
 const approveOrRejectRequestController = (req, res, next) =>
   approveOrRejectRequest(req, res, next);
 
+
+const addCardController = (req, res, next) =>
+  addCard(req, res, next);
+
+const removeCardController = (req, res, next) =>
+  removeCard(req, res, next);
+
+const fundWalletController = (req, res, next) =>
+  fundWallet(req, res, next);
+
+
+
+
 module.exports = {
   registerOrganizationController,
   siginOrganizationController,
@@ -55,5 +71,8 @@ module.exports = {
   getEmployeeController,
   deactivateEmployeeController,
   approveOrRejectRequestController,
-  getDashboardDetailsController
+  getDashboardDetailsController,
+  addCardController,
+  removeCardController,
+  fundWalletController,
 };

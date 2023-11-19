@@ -11,6 +11,9 @@ const {
   deactivateEmployeeController,
   approveOrRejectRequestController,
   getDashboardDetailsController,
+  addCardController,
+  removeCardController,
+  fundWalletController,
 } = require("../controllers/organization");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
 const {
@@ -55,6 +58,12 @@ organizationRouter.post("/requests/:id/item/:itemId/comment", isAuthorized, addC
 organizationRouter.post("/accounts", isAuthorized, addAccountController)
 organizationRouter.put("/accounts/:id", isAuthorized, updateAccountController)
 organizationRouter.delete("/accounts/:id", isAuthorized, deleteAccountController)
+
+
+organizationRouter.post("/cards", isAuthorized, addCardController)
+organizationRouter.delete("/cards/:id", isAuthorized, removeCardController)
+organizationRouter.post("/wallet-topup", isAuthorized, fundWalletController);
+
 
 organizationRouter.get("/me", isAuthorized, getOrganizationController);
 

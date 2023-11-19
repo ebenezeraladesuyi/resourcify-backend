@@ -148,7 +148,7 @@ async function getEmployees(req, res, next) {
 
     if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
 
-    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email active lastLogin')
+    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email active lastLogin role')
     // const employees = await Organization.findOne({code}, 'employees').populate("employees")
     return res.status(STATUS_CODE.OK).json(employees)
   } catch (error) {
@@ -337,6 +337,106 @@ async function getDashboardDetails(req, res, next) {
   }
 }
 
+async function addCard (req, res, next) {
+  try {
+    const {
+      cardNumber,
+      cardName,
+      cardExpiration,
+      cardType,
+      email
+    } = req.body
+
+    if (!cardNumber || !cardName || !cardExpiration || !cardType) throw new ValidationError("cardNumber, cardName, cardExpiration or cardType is missing", STATUS_CODE.BAD_REQUEST)
+
+    const org = await Organization.findOne({ email })
+
+    if (!org) throw new ValidationError("organization not found", STATUS_CODE.BAD_REQUEST)
+
+    const cardExists = org.cards.find((card) => card.cardNumber === parseInt(cardNumber, 10))
+
+    if (cardExists) throw new ValidationError("Card already exists")
+
+    const newCard = await org.cards.create({
+      cardNumber: parseInt(cardNumber, 10),
+      cardName,
+      expiry: cardExpiration,
+      cardType,
+    })
+
+    org.cards.push(newCard)
+
+    await org.save()
+
+    return res.status(STATUS_CODE.CREATED).json(newCard)
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+async function removeCard(req, res, next) {
+  try {
+    const {email} = req.body
+    const {id} = req.params
+
+    const org = await Organization.findOne({ email })
+
+    if (!org) throw new ValidationError("organization not found", STATUS.BAD_REQUEST)
+
+    const cardExists = org.cards.find((card) => card._id == id)
+
+    if (!cardExists) throw new ApiError("Card not found", STATUS_CODE.NOT_FOUND)
+
+    org.cards.filter(card => card._id != id)
+
+    await org.save()
+
+    return res.status(STATUS_CODE.NO_CONTENT).json(cardExists)
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }
+}
+
+async function fundWallet(req, res, next) {
+  try {
+    const {email, amount, cardId, cvv, code} = req.body
+
+    if (!amount || !cardId || !cvv) throw new ValidationError("Invalid request", STATUS.BAD_REQUEST)
+
+    const org = await Organization.findOne({ email })
+
+    if (!org) throw new ValidationError("organization not found", STATUS.BAD_REQUEST)
+
+    const cardExists = org.cards.find((card) => card._id == cardId)
+
+    if (!cardExists) throw new ApiError("Card not found", STATUS_CODE.NOT_FOUND)
+
+    org.walletBalance = (parseFloat(org.walletBalance) + parseFloat(amount)).toString()
+
+    const trans = await Transaction.create({
+      transactionType: 'Top Up',
+      deduction: false,
+      card: `${cardExists.cardType} - ${cardExists.cardName} - ${cardExists.cardNumber} - ${cardExists.expiry}`,
+      amount: parseFloat(amount),
+      author: org._id,
+      model: "Organization",
+      org: code,
+    })
+
+    if (trans) {
+      await org.save()
+      return res.status(STATUS_CODE.OK).json({message: "Wallet Top Up Successfull!"})
+    }
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || STATUS_CODE.INTERNAL_ERROR).json(error);
+  }   
+}
+
 module.exports = {
   registerOrganization,
   signinOrganization,
@@ -349,4 +449,7 @@ module.exports = {
   deactivateEmployee,
   approveOrRejectRequest,
   getDashboardDetails,
+  addCard,
+  removeCard,
+  fundWallet,
 };

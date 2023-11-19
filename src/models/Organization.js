@@ -20,6 +20,7 @@ const organizationSchema = new Schema(
     }],
     cards: [{
       _id: { type: Schema.Types.ObjectId, auto: true }, 
+      cardType: {type: String, uppercase: true, required: true},
       cardName: {type: String, uppercase: true, required: true},
       cardNumber: {type: Number, unique: true, required: true},
       expiry: {type: String, required: true}

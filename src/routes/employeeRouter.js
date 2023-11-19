@@ -13,7 +13,17 @@ const {
   getDashboardDetailsController,
 } = require("../controllers/employee");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
-const { getReimbursmentRequestController, getItemTypesController, addCommentToRequestItemController, addCommentToRequestController } = require("../controllers/common");
+const {
+  getReimbursmentRequestController,
+  getItemTypesController,
+  addCommentToRequestItemController,
+  addCommentToRequestController,
+  addAccountController,
+  updateAccountController,
+  deleteAccountController,
+  withdrawToAccountController,
+  getTransactionHistoryController,
+} = require("../controllers/common");
 
 const employeeRouter = Router();
 
@@ -53,10 +63,20 @@ employeeRouter.delete("/requests/:id/item/:itemId", isAuthorized, deleteReimburs
 employeeRouter.post("/requests/:id/comment", isAuthorized, addCommentToRequestController )
 employeeRouter.post("/requests/:id/item/:itemId/comment", isAuthorized, addCommentToRequestItemController )
 
+
+employeeRouter.post("/accounts", isAuthorized, addAccountController)
+employeeRouter.put("/accounts/:id", isAuthorized, updateAccountController)
+employeeRouter.delete("/accounts/:id", isAuthorized, deleteAccountController)
+
 employeeRouter.get("/me", isAuthorized, getEmployeeController);
 
 employeeRouter.put("/me", isAuthorized, updateEmployeeController);
 
 employeeRouter.delete("/me", isAuthorized, deactivateEmployeeController);
+
+
+
+employeeRouter.post("/withdrawal", isAuthorized, withdrawToAccountController);
+employeeRouter.get("/transaction-history", isAuthorized, getTransactionHistoryController);
 
 module.exports = employeeRouter;

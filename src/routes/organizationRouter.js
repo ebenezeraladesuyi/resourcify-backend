@@ -13,7 +13,16 @@ const {
   getDashboardDetailsController,
 } = require("../controllers/organization");
 const isAuthorized = require("../middlewares/auth/isAuthorized");
-const { addCommentToRequestController, addCommentToRequestItemController, getReimbursmentRequestController } = require("../controllers/common");
+const {
+  addCommentToRequestController,
+  addCommentToRequestItemController,
+  getReimbursmentRequestController,
+  addAccountController,
+  updateAccountController,
+  deleteAccountController,
+  withdrawToAccountController,
+  getTransactionHistoryController,
+} = require("../controllers/common");
 
 const organizationRouter = Router();
 
@@ -43,12 +52,18 @@ organizationRouter.patch("/requests/:id", isAuthorized, approveOrRejectRequestCo
 organizationRouter.post("/requests/:id/comment", isAuthorized, addCommentToRequestController )
 organizationRouter.post("/requests/:id/item/:itemId/comment", isAuthorized, addCommentToRequestItemController )
 
-
+organizationRouter.post("/accounts", isAuthorized, addAccountController)
+organizationRouter.put("/accounts/:id", isAuthorized, updateAccountController)
+organizationRouter.delete("/accounts/:id", isAuthorized, deleteAccountController)
 
 organizationRouter.get("/me", isAuthorized, getOrganizationController);
 
 organizationRouter.put("/me", isAuthorized, updateOrganizationController);
 
 organizationRouter.delete("/me", isAuthorized, deleteOrganizationController);
+
+organizationRouter.post("/withdrawal", isAuthorized, withdrawToAccountController);
+organizationRouter.get("/transaction-history", isAuthorized, getTransactionHistoryController);
+
 
 module.exports = organizationRouter;

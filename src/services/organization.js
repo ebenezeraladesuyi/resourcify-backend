@@ -148,7 +148,7 @@ async function getEmployees(req, res, next) {
 
     if (!isAdmin) return res.status(STATUS_CODE.UNAUTHORIZED).json("Forbidden");
 
-    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email active lastLogin')
+    const employees = await Employee.find({organizationCode: code}, 'firstName lastName email active lastLogin role')
     // const employees = await Organization.findOne({code}, 'employees').populate("employees")
     return res.status(STATUS_CODE.OK).json(employees)
   } catch (error) {
